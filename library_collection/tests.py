@@ -216,7 +216,7 @@ class EditViewTestCase(TestCase):
     def testCollectionView(self):
         '''Test view of one collection'''
         url = reverse('edit_detail',
-                kwargs={ 'colid':2,
+                kwargs={ 'edit': 'edit/', 'colid':2,
                     'col_slug':'halberstadt-collection-selections-of-photographs-p'},
             )
         response = self.client.get(url)
@@ -224,3 +224,5 @@ class EditViewTestCase(TestCase):
         self.assertContains(response, 'Campus')
         self.assertContains(response, 'Davis')
         self.assertNotContains(response, 'Metadata')
+        
+        response = self.client.post(url)

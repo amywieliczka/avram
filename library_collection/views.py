@@ -55,9 +55,39 @@ def collections(request, campus_slug=None):
         },
     )
 
-@login_required
-def edit_details(request, colid=None, col_slug=None):
-    return details(request, colid, col_slug)
+# @login_required
+def edit_details(request, edit=None, colid=None, col_slug=None):
+    collection = get_object_or_404(Collection, pk=colid)
+    # if the collection id matches, but the slug does not, redirect (for seo)
+    if col_slug != collection.slug:
+        return redirect(collection, permanent=True)
+    else:
+        if (request.method == 'POST'):
+            requestObj = request.POST
+            
+            if ('edit' in requestObj):
+                return render(request,
+                    template_name='library_collection/collection_edit.html',
+                    dictionary={ 
+                        'collection': collection,
+                        'campuses': campuses, 
+                        'repositories': Repository.objects.all().order_by('name'),
+                        'appendixChoices': Collection.APPENDIX_CHOICES,
+                        'current_path': request.path,
+                        'editing': editing(request.path),
+                    },
+                )
+            else:
+                collection.name = requestObj["name"]
+                collection.appendix = requestObj['appendix']
+                collection.repository.clear()
+                collection.repository = requestObj.getlist('repositories')
+                collection.campus.clear()
+                collection.campus = requestObj.getlist("campuses")
+                collection.save();
+        
+        return details(request, colid, col_slug)
+    
 
 # view for collection details
 def details(request, colid=None, col_slug=None):
@@ -70,7 +100,7 @@ def details(request, colid=None, col_slug=None):
             template_name='library_collection/collection.html',
             dictionary={ 
                 'collection': collection,
-                'campuses': campuses, 
+                'campuses': campuses,
                 'current_path': request.path,
                 'editing': editing(request.path),
             },

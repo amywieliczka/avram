@@ -9,12 +9,18 @@
         {% endfor %}</small>
         </small>
         </h2>
+        {% if user.is_authenticated %}
+        <form action="{% url 'edit_detail' edit='edit/' colid=collection.id col_slug=collection.slug %}" method="post">
+        {% csrf_token %}
+            <button type="submit" name="edit" value="true">Edit this record</a>
+        </form>
+        {% endif %}
     </div>
 {% endif %}
-
 {% endblock %}
 
 {% block content %}
+
 <div class="container-fluid">
   <div class="row span12">
     <div class="row">

@@ -14,11 +14,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="{% static 'bootstrap/css/bootstrap-responsive.css' %}" rel="stylesheet"/>
+    <link href="{% static 'chosen/chosen.css' %}" rel="stylesheet"/>
     {% block extrastyle %}{% endblock %}
 </head>
 <body>
     <script src="http://code.jquery.com/jquery-latest.js"></script>
     <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'chosen/chosen.jquery.js' %}"></script>
     {% block extrascript %}{% endblock %}
     
     {% block header_top %}
@@ -45,7 +47,7 @@
                     </span>
                     <span class="span4">
                         {% if user.is_authenticated %}
-                        Signout
+                        <a href="{% url 'logout_view' %}">Signout</a>
                         {% endif %}
                     </span>
                 </div>

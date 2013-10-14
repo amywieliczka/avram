@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, get_list_or_404, redirect
 from human_to_bytes import bytes2human
 from django.db.models import Sum
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
 
 campuses = Campus.objects.all().order_by('slug')
 
@@ -55,56 +56,50 @@ def collections(request, campus_slug=None):
         },
     )
 
-# @login_required
-def edit_details(request, edit=None, colid=None, col_slug=None):
-    collection = get_object_or_404(Collection, pk=colid)
-    # if the collection id matches, but the slug does not, redirect (for seo)
-    if col_slug != collection.slug:
-        return redirect(collection, permanent=True)
-    else:
-        if (request.method == 'POST'):
-            requestObj = request.POST
-            
-            if ('edit' in requestObj):
-                return render(request,
-                    template_name='library_collection/collection_edit.html',
-                    dictionary={ 
-                        'collection': collection,
-                        'campuses': campuses, 
-                        'repositories': Repository.objects.all().order_by('name'),
-                        'appendixChoices': Collection.APPENDIX_CHOICES,
-                        'current_path': request.path,
-                        'editing': editing(request.path),
-                    },
-                )
-            else:
-                collection.name = requestObj["name"]
-                collection.appendix = requestObj['appendix']
-                collection.repository.clear()
-                collection.repository = requestObj.getlist('repositories')
-                collection.campus.clear()
-                collection.campus = requestObj.getlist("campuses")
-                collection.save();
-        
-        return details(request, colid, col_slug)
-    
+@login_required
+def edit_details(request, dictionary, collection):
+    requestObj = request.POST
+    if ('edit' in requestObj):
+        dictionary['campuses'] = campuses
+        dictionary['repositories'] = Repository.objects.all().order_by('name')
+        dictionary['appendixChoices'] = Collection.APPENDIX_CHOICES
+        dictionary['edit'] = 'true'
+    else: 
+        collection.name = requestObj["name"]
+        collection.appendix = requestObj['appendix']
+        collection.repository.clear()
+        collection.repository = requestObj.getlist('repositories')
+        collection.campus = requestObj.getlist("campuses")
+        collection.save();
 
-# view for collection details
-def details(request, colid=None, col_slug=None):
+def details(request, edit=None, colid=None, col_slug=None):
     collection = get_object_or_404(Collection, pk=colid)
     # if the collection id matches, but the slug does not, redirect (for seo)
     if col_slug != collection.slug:
         return redirect(collection, permanent=True)
     else:
+        dictionary = {
+            'collection': collection,
+            'current_path': request.path,
+            'editing': editing(request.path),
+        }
+        
+        if edit == 'edit/': 
+            if not request.user.is_authenticated():
+                return redirect('/accounts/login/?next=%s' % request.path)
+            # if we're not just behind the 'edit' url path, but actually actively editing
+            if (request.method == 'POST'):
+                edit_details(request, dictionary, collection)
+        
         return render(request,
             template_name='library_collection/collection.html',
-            dictionary={ 
-                'collection': collection,
-                'campuses': campuses,
-                'current_path': request.path,
-                'editing': editing(request.path),
-            },
+            dictionary=dictionary
         )
+    
+
+def logout_view(request):
+    logout(request)
+    return redirect('collections', permanent=True)
 
 @login_required
 def edit_details_by_id(request, colid):

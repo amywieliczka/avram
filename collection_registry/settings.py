@@ -173,6 +173,7 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     'library_collection',
     'publishing_projects',
+    'rikolti',
     # 'rest_framework',
     #'dbdump',
 )
